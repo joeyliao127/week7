@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/pic/aquabox.png" />
+    <link rel="stylesheet" href="/style/reset.css" />
+    <link rel="stylesheet" href="/style/member/member.css" />
+    <link rel="stylesheet" href="/style/general/general.css" />
+    <title>Member</title>
+  </head>
+  <body>
+    <div class="wrapper">
+      <section class="top-bar">
+        <div class="logo">
+          <a href="/member">
+            <img src="/pic/aquabox.png" alt="" />
+            <h1>Aquaboxes</h1>
+          </a>
+        </div>
+        <div class="search">
+          <form action="/search" method="get" id="search-form">
+            <input
+              type="text"
+              name="search"
+              id="search"
+              placeholder="Search for a specific member's messages"
+            />
+            <button></button>
+          </form>
+        </div>
+        <div class="signout-btn">
+          <a href="/signout">Sign out</a>
+        </div>
+      </section>
+      <main>
+        <div class="welcome">
+          <div class="member">
+            <p id="name"></p>
+            <img src="/pic/Hi.png" alt="Hi" />
+          </div>
+          <div class="comment">
+            <form action="/createMessage" method="post" id="msg_form">
+              <textarea
+                name="comment"
+                id="comment"
+                cols="30"
+                rows="10"
+                placeholder="Share your thoughts"
+              ></textarea>
+              <button>Submit</button>
+            </form>
+          </div>
+        </div>
+        <div class="msg-wrapper">
+          <div class="msg-ctn">
+            <!-- <div class="msg-parent">
+              <div class="msg-item">
+                <div class="msg-left">
+                  <img src="/pic/msg-person.png" alt="msg-person" />
+                  <p>Joey</p>
+                </div>
+                <div class="msg-mid">
+                  <textarea id="msg-update" cols="30" rows="10">Hello</textarea>
+                </div>
+                <div class="msg-right">
+                  <div class="msg-btn">
+                    <button class="cancel-btn">X</button>
+                    <button class="update-btn">O</button>
+                  </div>
+                  <p>20230813</p>
+                </div>
+              </div>
+            </div> -->
+          </div>
+          <div class="loadmore">
+            <p>LoadMore</p>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="/javascript/member.js"></script>
+  </body>
+</html>

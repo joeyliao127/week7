@@ -1,0 +1,248 @@
+body {
+  // background-image: url(/pic/background.jpeg);
+  background-image: url(/pic/sea.jpeg);
+  background-size: cover;
+  background-color: #188090;
+  background-repeat: no-repeat;
+  flex-direction: column;
+}
+* {
+  font-family: edu;
+}
+.wrapper {
+  height: 100%;
+}
+.search {
+  form {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  input {
+    min-width: 500px;
+    box-sizing: border-box;
+    border-radius: 20px;
+    border: 2px solid rgb(38, 177, 170);
+    padding: 10px 20px;
+    font-size: 20px;
+    font-weight: 500;
+    color: rgb(120, 217, 209);
+    text-align: center;
+    display: flex;
+    &::placeholder {
+      font-size: 20px;
+      font-weight: 600;
+
+      text-align: center;
+      vertical-align: middle;
+      color: rgb(165, 217, 212);
+    }
+  }
+  button {
+    width: 40px; /* 设置按钮宽度 */
+    height: 40px; /* 设置按钮高度 */
+    background-image: url(/pic/search.png);
+    background-size: cover; /* 图像自适应尺寸 */
+    background-color: #0e6e89;
+    border: none; /* 移除按钮边框 */
+    color: transparent; /* 文字透明，让图像显示出来 */
+    cursor: pointer; /* 添加指针样式 */
+  }
+}
+
+main {
+  display: flex;
+}
+.welcome {
+  min-width: 250px;
+  height: 400px;
+  padding: 50px 20px;
+  position: relative;
+  background-color: #cbdde1;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  border-radius: 20px;
+  inset: 100px 20px auto 20px;
+}
+.member {
+  background-color: #0e6e89;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  p {
+    color: #f2f2f0;
+    font-size: 25px;
+    font-weight: 600;
+  }
+  img {
+    width: 30px;
+    height: 30px;
+    transition: all 0.5s ease-in-out;
+  }
+  &:hover img {
+    animation: shark 1s;
+  }
+}
+.comment {
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    textarea {
+      width: calc(100% - 2%);
+      max-height: 200px;
+      resize: none;
+      border-radius: 20px;
+      box-sizing: border-box;
+      padding: 15px;
+      font-size: 18px;
+      &::placeholder {
+      }
+    }
+    button {
+      font-size: 18px;
+      color: #f2f2f0;
+      background-color: #188090;
+      border: 1px solid green;
+      width: 100px;
+      height: 50px;
+      border-radius: 20px;
+      box-sizing: border-box;
+      padding: 5px;
+      margin: auto;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+.msg-wrapper {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 50px 50px;
+  .msg-ctn {
+    // background-color: #edece7;
+    background-color: rgba(173, 216, 230, 0.7);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    box-sizing: border-box;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    .msg_parent {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+}
+.msg-item {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid rgb(27, 43, 43);
+  border-radius: 20px;
+  background-color: #f2f2f0;
+  box-sizing: border-box;
+  padding: 20px 30px;
+  .msg-left {
+    display: flex;
+    flex-grow: 0;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 500;
+    color: #084f62;
+    gap: 10px;
+    p {
+    }
+  }
+  .msg-mid {
+    display: flex;
+    flex-grow: 1;
+    box-sizing: border-box;
+    padding: 0px 25px;
+
+    p {
+      position: relative;
+      color: #084f62;
+    }
+  }
+  .msg-right {
+    flex-grow: 0;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    button {
+      background-color: #cbdde1;
+      border: #188090 1px solid;
+      border-radius: 10px;
+      color: #084f62;
+      font-size: 18px;
+      font-weight: 500;
+
+      width: 42px;
+
+      cursor: pointer;
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+    p {
+      color: #084f62;
+    }
+  }
+}
+.loadmore {
+  display: flex;
+  box-sizing: border-box;
+  margin: 15px auto;
+  padding: 10px 20px;
+  border: 2px #084f62 solid;
+  box-shadow: 0px 0px 10px rbga(0, 0, 0, 0.2);
+  border-radius: 20px;
+  background-color: #cbdde1;
+  width: 150px;
+  transition: all 0.2s;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
+  p {
+    margin: auto;
+    font-size: 20px;
+    font-weight: 700;
+
+    color: #084f62;
+  }
+}
+
+#msg-update {
+  width: 100%;
+}
+@font-face {
+  font-family: edu;
+  src: url(/font/EduSABeginner-VariableFont_wght.ttf);
+}
+
+@keyframes shark {
+  0% {
+    transform: rotate(20deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(20deg);
+  }
+  75% {
+    transform: rotate(-10deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
