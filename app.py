@@ -42,7 +42,7 @@ def connectionDecorator(operationFn):
 #     print("test連線成功！！")
 # test()
 
-#請依照以下格式輸入：
+#依照以下格式輸入：
 #1. create(query字串, query參數)
 #2. queryStr需為完整的句子，如"INSERT INTO member (name, username, password) VALUES (%s, %s, %s)"
 #3. queryArgs為tuple，如queryArgs = ("EEE", "EEE", "EEE")
@@ -58,7 +58,7 @@ def insert_data(cursor,connection, queryStr: str,queryParameter: tuple):
         print(f"來自DB的錯誤訊息：{ex}")
         return False
 
-#請依照以下格式輸入：
+#依照以下格式輸入：
 #1. find(query字串, query參數)
 #2. queryStr需為完整的句子，如SELECT * FROM member where name = %s
 #3. queryAargs為tuple，如("Joey",)
@@ -78,6 +78,17 @@ def find(cursor,connection,queryStr: str, queryParameter: tuple):
     except Exception as ex:
         print("find Fn：查詢失敗...")
         print(f"來自DB的錯誤訊息：{ex}")
+        return False
+
+@connectionDecorator
+def update(cursor, connection, queryStr: str, queryParameter: tuple):
+    try:
+        cursor.execute(queryStr, queryParameter)
+        connection.commit()
+        print(f"update Fn：更新成功！")
+        return True
+    except Exception as ex:
+        print(f"update Fn：更新失敗，以下是來自DB的錯誤訊息:\n{ex}")
         return False
 
 @connectionDecorator
@@ -177,10 +188,29 @@ def msgJsonMaker(queryResult: list):
         }
     }
     res["msg"] = transform
-    res = json.dumps(res)
+    res = json.dumps(res, ensure_ascii=False)
     print("-----------------JsonMaker回傳結果-------------------\n", res)
     return res
 
+def searchUsername(username):
+    queryStr = "SELECT id,name,username FROM member where username = %s"    
+    queryArgs = (username,)
+    result = find(queryStr, queryArgs)
+    print(f"searchUsername Fn： 查詢結果為 '{result}'")
+    if(result):
+        return result
+    else:
+        return None
+
+def updateName(new_name):
+    queryStr = "UPDATE member SET name = %s where username = %s"
+    queryArgs = (new_name, session["username"])
+    print(f"update Fn：\n更新目標：{session['username']}\n更新名稱：{new_name}")
+    status = update(queryStr, queryArgs)
+    if(status):
+        return True
+    else:
+        return False
 @app.route("/")
 def index():
     session["status"] = False
@@ -263,7 +293,7 @@ def getUserInfo():
     res = {
         "id": session["id"]
     }
-    res = json.dumps(res)
+    res = json.dumps(res, ensure_ascii=False)
     return res
 
 @app.route("/deleteMessage/", methods=["POST"])
@@ -299,8 +329,39 @@ def searchMemberMsg(member_name):
     print("searchMemberMsg route：轉換JSON\n", result)
     return result
 
-# @app.route("/api/member")
-# def apiMember():
+@app.route("/api/member", methods=["GET", "PATCH"])
+def apiMember():
+    print("========================================================")
+    if not "status" in session:
+        return json.dumps({"data": None})
+    contentType = request.headers.get("Content-Type","")
+    print("API Member route： http header = ", contentType)
+    if(contentType=="application/json"):
+        new_name = request.json
+        status = updateName(new_name["name"])
+        if(status):
+            return json.dumps({"ok": True})
+        else:    
+            return json.dumps({"error": True})
+    else:
+        target = request.args.get("username")
+        print(f"api member route：前端發來的target為 '{target}'")
+        result = searchUsername(target)
+        print(f"apiMember route：取得的name為{result}, type = {type(result)}")
+        if(result):
+            result = result[0]
+            result = {
+                "data": {
+                    "id":result["id"],
+                    "name":result["name"],
+                    "username": result["username"]
+                }
+            }
+            jsonData = json.dumps(result, ensure_ascii=False)
+            print("apiMember route：回傳的JSON為", jsonData)
+            return jsonData
+        else:
+            return json.dumps({"data": None})
 
 
 app.run(port=3000, debug=True, use_reloader=True, threaded=True)

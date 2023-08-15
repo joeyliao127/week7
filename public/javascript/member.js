@@ -148,16 +148,50 @@ search_form.addEventListener("submit", async (e) => {
   }
 });
 
-update_name_btn.addEventListener("click", (e) => {
+update_name_btn.addEventListener("click", async () => {
   const updateValue = document.querySelector(".update-item input");
-  if (updateValue.value) {
+  try {
+    if (updateValue.value) {
+      const new_name = updateValue.value;
+      updateName = await fetch("/api/member", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: new_name,
+        }),
+      });
+    }
     window.alert("Updated！");
+  } catch (e) {
+    console.log(`Update失敗`);
+    console.log(e);
   }
+  const data = await updateName.json();
+  console.log(`更新後的狀態${data.ok}`);
 });
 
-seach_name_btn.addEventListener("click", (e) => {
+seach_name_btn.addEventListener("click", async () => {
   const search_name_input = document.querySelector(".search-ctn input");
   if (search_name_input.value) {
-    window.alert("ok");
+    const target_name = search_name_input.value;
+    const url = `http://127.0.0.1:3000/api/member?username=${target_name}`;
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+      });
+      const data = await response.json();
+      console.log(data);
+      const search_result_item = document.querySelector(".search-result p");
+      if (data.data) {
+        search_result_item.textContent = data.data.name;
+      } else {
+        search_result_item.textContent = "not found";
+      }
+    } catch (e) {
+      console.log(`查詢失敗`);
+      console.log(e);
+    }
   }
 });
