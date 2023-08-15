@@ -63,7 +63,7 @@ main {
 
 .welcome {
   min-width: 250px;
-  height: 400px;
+  height: 100%;
   padding: 50px 20px;
   position: relative;
   background-color: #cbdde1;
@@ -126,6 +126,75 @@ main {
 }
 .comment form button:hover {
   opacity: 0.8;
+}
+
+.update-ctn {
+  width: 100%;
+  height: 100px;
+  border-radius: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.update-item {
+  display: flex;
+  gap: 10px;
+}
+.update-item input {
+  border-radius: 20px;
+  border: 1px gray solid;
+  height: 24px;
+  text-align: center;
+}
+
+.update-btn {
+  display: flex;
+  width: 100px;
+  height: 50px;
+  background-color: #188090;
+  box-sizing: border-box;
+  border: 1px green solid;
+  border-radius: 20px;
+  padding: 5px;
+  cursor: pointer;
+}
+.update-btn p {
+  margin: auto;
+  color: white;
+  font-size: 18px;
+}
+
+.search-ctn {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+.search-ctn input {
+  border-radius: 20px;
+  border: 1px gray solid;
+  height: 24px;
+  text-align: center;
+}
+
+.search-name-btn {
+  display: flex;
+  width: 100px;
+  background-color: #188090;
+  box-sizing: border-box;
+  border: 1px green solid;
+  border-radius: 20px;
+  padding: 5px;
+  cursor: pointer;
+}
+.search-name-btn p {
+  margin: auto;
+  color: white;
 }
 
 .msg-wrapper {

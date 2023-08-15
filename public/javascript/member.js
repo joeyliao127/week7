@@ -2,10 +2,11 @@ const member_name = document.querySelector("#name");
 const msg_ctn = document.querySelector(".msg-ctn");
 const loadMore = document.querySelector(".loadmore");
 const comment_form = document.querySelector("#msg_form");
-const comment_textarea = document.querySelector("#comment_form textarea");
+const msg_textarea = document.querySelector("#msg_form textarea");
 const search_form = document.querySelector("#search-form");
 const search_input = document.querySelector("#search-form input");
-
+const update_name_btn = document.querySelector(".update-btn");
+const seach_name_btn = document.querySelector(".search-name-btn");
 let counter = 0;
 
 //msg_item_maker輸入參數為DB回傳的資料
@@ -17,12 +18,6 @@ function msg_item_maker(userInfo, msgCollection) {
   msg_parent.classList.add("msg_parent");
   if (msgCollection.length == 0) {
     loadMore.style.display = "none";
-    // const msg_itme = document.createElement("div");
-    // msg_itme.classList.add("msg-item");
-    // let template = `<p>Be the first to comment</p>`;
-    // msg_itme.innerHTML = template;
-    // msg_parent.appendChild(msg_itme);
-    // msg_ctn.appendChild(msg_parent);
   } else {
     console.log("開始產生留言");
     for (let i = 0; i < msgCollection.length; i++) {
@@ -40,7 +35,7 @@ function msg_item_maker(userInfo, msgCollection) {
             </p>	
         </div>	
         <div class="msg-right">	
-            <div class="msg-btn">	
+            <div class="msg-btn">		
                 <button class="del-btn" msg_id = ${msgCollection[i].msg_id}>del</button>	
             </div>	
             <p>${msgCollection[i].date}</p>	
@@ -131,7 +126,7 @@ loadMore.addEventListener("click", async () => {
 
 //監聽留言板是否為空，空的就不能提交
 comment_form.addEventListener("submit", (e) => {
-  if (!comment_textarea.value) {
+  if (!msg_textarea.value) {
     e.preventDefault();
   }
 });
@@ -150,5 +145,19 @@ search_form.addEventListener("submit", async (e) => {
     msg_item_maker(userInfo, msg);
   } else {
     window.location = "/member";
+  }
+});
+
+update_name_btn.addEventListener("click", (e) => {
+  const updateValue = document.querySelector(".update-item input");
+  if (updateValue.value) {
+    window.alert("Updated！");
+  }
+});
+
+seach_name_btn.addEventListener("click", (e) => {
+  const search_name_input = document.querySelector(".search-ctn input");
+  if (search_name_input.value) {
+    window.alert("ok");
   }
 });

@@ -1,7 +1,7 @@
 from flask import *
 import mysql.connector
 import json
-# import datetime
+import threading
 app = Flask(
     __name__,
     static_folder="public",
@@ -9,72 +9,161 @@ app = Flask(
 )
 app.secret_key = "0xffffffff"
 
-
-db_connection = {
+dbconfig = {
     "host": "127.0.0.1",
     "port": 3306,
-    "user": "root",
+    "user": "root", 
     "password": "root",
-    "database": "website"
+    "database": "website",
 }
 
-try:
-    connection = mysql.connector.connect(**db_connection) 
-    if connection.is_connected():
-        print("Connected to the database!")
+connectionPool = mysql.connector.pooling.MySQLConnectionPool(pool_name="website",pool_size=5,**dbconfig)
 
-except Exception as ex:
-    print("Connection failed")
-    print(ex)
+def connectionDecorator(operationFn):
+    def connectDB(queryStr: str, queryArgs: tuple):
+        print("建立db_connection...")
+        print(f"CRUD Fn的args = {queryStr}")
+        try:
+            print("嘗試使用connection pool取得連線....")
+            with connectionPool.get_connection() as connection:
+                print("Connected to database!")
+                with connection.cursor(dictionary=True) as cursor:
+                    result = operationFn(cursor,connection,queryStr,queryArgs)  
+                    return result
+        except Exception as ex:
+            print("連線失敗:")
+            print(f"來自DB的錯誤訊息：{ex}")
+        print(f"關閉connection", {connection.is_connected()})
+        print(f"關閉cursor")                               
+    return connectDB
 
-cursor = connection.cursor(dictionary=True)
+# @connectionDecorator
+# def test(cursor, connection, queryStr, queryArgs):
+#     print("test連線成功！！")
+# test()
 
-def createMember(name, username, password):
-    queryString = "INSERT INTO member (name, username, password) VALUES (%s,%s,%s)"
-    qureyValue = (name, username, password)
+#請依照以下格式輸入：
+#1. create(query字串, query參數)
+#2. queryStr需為完整的句子，如"INSERT INTO member (name, username, password) VALUES (%s, %s, %s)"
+#3. queryArgs為tuple，如queryArgs = ("EEE", "EEE", "EEE")
+@connectionDecorator
+def insert_data(cursor,connection, queryStr: str,queryParameter: tuple):
     try:
-        cursor.execute(queryString, qureyValue)
-        connection.commit()
+        cursor.execute(queryStr, queryParameter)
+        connection.commit()           
+        print("create交易完成")
         return True
     except Exception as ex:
-        print("新增失敗...")
+        print("create交易失敗...")
         print(f"來自DB的錯誤訊息：{ex}")
         return False
-    
-def find(qurey: str, qureyValue: tuple):
+
+#請依照以下格式輸入：
+#1. find(query字串, query參數)
+#2. queryStr需為完整的句子，如SELECT * FROM member where name = %s
+#3. queryAargs為tuple，如("Joey",)
+#4. find return一個list，裡面包含了多個字典。[{}, {}, {}]
+@connectionDecorator
+def find(cursor,connection,queryStr: str, queryParameter: tuple):
     try:
-        print(f"============find()要執行的queryStr============\n{(qurey, qureyValue)}")
-        cursor.execute(qurey, qureyValue)
+        print(f"============find()要執行的queryStr============\n{(queryStr, queryParameter)}")
+        cursor.execute(queryStr, queryParameter)
         result = cursor.fetchall()
         res = []
         for item in result:
             res.append(item)
+        print("find Fn返回的res： ", res)
         return res
 
     except Exception as ex:
-        print("查詢失敗...")
+        print("find Fn：查詢失敗...")
         print(f"來自DB的錯誤訊息：{ex}")
         return False
 
+@connectionDecorator
+def delete(cursor, connection, queryStr: str, queryParameter: tuple):
+    try:
+        cursor.execute(queryStr, queryParameter)
+        connection.commit()           
+        print("delete：交易完成")
+        return True
+    except Exception as ex:
+        print("delete：交易失敗")
+        print(f"來自DB的錯誤訊息：{ex}")
+        return False
+
+
+# queryString = "SELECT * FROM member wh｀ere name = %s"
+# find(queryString, ("Joey",))
+
+#verify return一個list，裡面裝一個tuple。
+#result[{id: , name:, username: }]
 def verify(username: str, password: str):
-    qureyStr = "SELECT id,name, username FROM member where username = %s and password = %s"
-    qureyValue = (username, password)
-    result = find(qureyStr, qureyValue)
+    qureyString = "SELECT id,name, username FROM member where username = %s and password = %s"
+    result = find(qureyString, (username, password))
+    print(f"verify接收到的查詢結果：{result}")
     if(result):
         return result
     else:
         return None
 
+def createMember(name :str, username :str, password :str):
+    queryStr = "INSERT INTO member(name, username, password) VALUES(%s,%s,%s)"
+    queryArags = (name, username, password)
+    try:
+        status = insert_data(queryStr, queryArags)
+        if(status):
+            print("新增會員成功！")
+            return True
+    except Exception as ex:
+        print("新增會員失敗")
+        return False
+
+#getComment會return一個json格式的物件
+#內容包含兩個字典{ "userInfo": {...}, "msg": [{}. {}. {}]}  
 def getComment(count: int):
     qureyStr = "SELECT member.id, member.name, message.time, message.content, message.id as msg_id FROM member JOIN message ON member.id = message.member_id ORDER BY message.id DESC LIMIT 5 OFFSET %s;"
     count = (count,)
     queryResult = find(qureyStr, count)
-    result = []
+    res = msgJsonMaker(queryResult)
+    return res
+
+def searchMsg(member_name):
+    queryStr = "SELECT member.id, member.name, message.time, message.content, message.id as msg_id FROM member JOIN message ON member.id = message.member_id WHERE member.name = %s ORDER BY message.id DESC;"
+    queryArgs = (member_name,)
+    queryResult = find(queryStr, queryArgs)
+    print(f"searchMsg Fn：取得的queryResult為：{queryResult}")
+    res = msgJsonMaker(queryResult)
+    print(f"searchMsg Fn：轉換後的queryResult為\n{res}")
+    return res
+
+
+def insertMsg(id, content):
+    queryStr = "INSERT INTO message(member_id, content) VALUES(%s,%s)"
+    queryArgs = (id, content)
+    try:
+        status = insert_data(queryStr, queryArgs)
+        if(status):
+            print("inserMsg Fn：新增留言成功！")
+            return True
+    except Exception as ex:
+        print("inserMsg Fn：新增留言失敗")
+        print(ex)    
+        return False
+    # try:
+    #     cursor.execute(qureyStr, qureyValue)
+    #     connection.commit()
+    # except Exception as ex:
+    #     print(f"message新增失敗，錯誤訊息：{ex}")
+
+def msgJsonMaker(queryResult: list):
+    print("Json Maker收到的資訊：\n", queryResult)
+    transform = []
     for data in queryResult:
         #data格式為：{'id': 2, 'name': 'Joey', 'time': datetime.datetime(2022, 6, 18, 0, 0), 'content': 'Hi here is Joey'}
         date = data["time"].date()        
         date = date.isoformat()
-        result.append({
+        transform.append({
             "id": data["id"],
             "name": data["name"],
             "date": date,
@@ -87,20 +176,10 @@ def getComment(count: int):
             "name": session["name"]
         }
     }
-    res["msg"] = result
+    res["msg"] = transform
     res = json.dumps(res)
-    print("-----------------getComment return value-------------------", res)
+    print("-----------------JsonMaker回傳結果-------------------\n", res)
     return res
-
-def insertMsg(id, content):
-    qureyStr = "INSERT INTO message(member_id, content) VALUES(%s,%s)"
-    qureyValue = (id, content)
-    try:
-        cursor.execute(qureyStr, qureyValue)
-        connection.commit()
-    except Exception as ex:
-        print(f"message新增失敗，錯誤訊息：{ex}")
-
 
 @app.route("/")
 def index():
@@ -113,6 +192,7 @@ def signin():
     print(f'sign裡面的verified():{verified}')
     if(verified):
         data = verified[0]
+        print(f"data = {data}")
         session["status"] = True
         session["id"] = data["id"]
         session["name"] = data["name"]
@@ -153,8 +233,11 @@ def signup():
     if(result):
         return redirect(url_for("error", message="帳號已經被註冊"))
     else:
-        createMember(name, username, password)
-        return redirect("/")
+        status = createMember(name, username, password)
+        if(status):
+            return redirect("/")
+        else:
+            return render_template("error.html", message = "發生未知的錯誤")
 
 @app.route("/init")
 def init():
@@ -188,47 +271,38 @@ def deleteMessage():
     data = request.json
     verify_id = data["user_id"]
     msg_id = data["msg_id"]
-    qureyValue = (msg_id,)
+    queryStr = f"DELETE FROM message where id = %s"
+    queryArgs = (msg_id,)
     if(int(verify_id) == session["id"]):
         print("驗證通過，執行刪除Fn")
-        qureyStr = f"DELETE FROM message where id = %s"
         try:
-            cursor.execute(qureyStr, qureyValue)
-            connection.commit()
+            status = delete(queryStr, queryArgs)
+            print(f"刪除id = '{msg_id}'成功")
+            return True
         except Exception as ex:
-            print(f"刪除失敗，來自DB的錯誤訊息：{ex}")
+            print(f"刪除id = '{msg_id}'失敗\n來自DB的錯誤訊息：{ex}")
+            return False
     else:
         print("驗證失敗....")
-    return "ok"
+        return False
 
 @app.route("/searchMemberMsg/<member_name>")
 def searchMemberMsg(member_name):
-    qureyStr = "SELECT member.id, member.name, message.time, message.content, message.id as msg_id FROM member JOIN message ON member.id = message.member_id WHERE member.name = %s ORDER BY message.id DESC;"
-    print("要搜尋的人：", member_name)
-    qureyValue = (member_name, )
-    qureyResult = find(qurey=qureyStr, qureyValue=qureyValue)
-    print(f"========search route找到的資訊為：===============\n{qureyResult}")
-    result = []
-    for data in qureyResult:
-        date = data["time"].date()        
-        date = date.isoformat()
-        result.append({
-            "id": data["id"],
-            "name": data["name"],
-            "date": date,
-            "comment": data["content"],
-            "msg_id": data["msg_id"]
-        })
-    res = {
-            "userInfo":{
-                "id": session["id"],
-                "name": session["name"]
-            }
-        }
-    res["msg"] = result
-    res = json.dumps(res)
-    return res
+    print(f"searchMemberMsg route：要搜尋的人為'{member_name}'")
+    try:
+        result = searchMsg(member_name)
+        print("searchMemberMsg route：搜尋成功")
+        print(f"搜尋結果為：{result}")
+    except:
+        print("searchMemberMsg route: 搜尋留言失敗")
 
-app.run(port=3000, debug=True, use_reloader=True)
+    print("searchMemberMsg route：轉換JSON\n", result)
+    return result
+
+# @app.route("/api/member")
+# def apiMember():
+
+
+app.run(port=3000, debug=True, use_reloader=True, threaded=True)
 
 
